@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <packaging>pom</packaging>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>2.3.4.RELEASE</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+    <groupId>com.poc</groupId>
+    <artifactId>poc-dashboard-parent</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <name>poc-dashboard-parent</name>
+    <description>POC Application</description>
+
+    <properties>
+
+        <java.version>1.8</java.version>
+        <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <java.encoding>UTF-8</java.encoding>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+
+        <poc.web.support.version>1.0.0-SNAPSHOT</poc.web.support.version>
+        <poc.web.cache.version>1.0.0-SNAPSHOT</poc.web.cache.version>
+        <poc.web.db.version>1.0.0-SNAPSHOT</poc.web.db.version>
+        <poc.web.security.version>1.0.0-SNAPSHOT</poc.web.security.version>
+        <poc.web.app.version>1.0.0-SNAPSHOT</poc.web.app.version>
+        <poc.web.aop.version>1.0.0-SNAPSHOT</poc.web.aop.version>
+
+
+        <!-- Global Thirdparty Jar Version -->
+       <!-- <maven.surefire.plugin.version>3.0.0-M1</maven.surefire.plugin.version>-->
+        <maven.surefire.plugin.version>2.22.2</maven.surefire.plugin.version>
+        <junit-platform-surefire.version>1.3.2</junit-platform-surefire.version>
+        <jacoco-maven-plugin.version>0.8.6</jacoco-maven-plugin.version>
+
+
+    </properties>
+
+    <modules>
+        <module>web/poc-web-support</module>
+        <module>web/poc-web-security</module>
+        <module>web/poc-web-cache</module>
+        <module>web/poc-web-db</module>
+        <module>web/poc-web-aop</module>
+        <module>web/poc-web-app</module>
+    </modules>
+
+    <!-- shared dependency -->
+    <dependencies>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+            <version>23.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-report-plugin</artifactId>
+            <version>2.17</version>
+        </dependency>
+    </dependencies>
+
+</project>
+

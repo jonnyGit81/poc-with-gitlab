@@ -1,0 +1,13 @@
+package com.poc.web.form;
+
+public class DeleteAdminUserForm {
+    private Long id;
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+}

@@ -1,0 +1,22 @@
+:internal:
+= Zero To Hero
+:toc: left
+:author: Jonny
+:revnumber!: 1.0.0
+:revdate: Tuesday, 09 February, 2021
+:doctype:   article
+:encoding:  utf-8
+:lang:      en
+:toc:       left
+:toclevels: 10
+:toc-title: Table of Content
+:sectnums:
+:last-update-label:
+:nofooter!:
+:media: print
+:icons: font
+:pagenums:
+:imagesdir: images/
+:numbered:
+:toc: left
+:xrefstyle: full

@@ -1,0 +1,60 @@
+:internal:
+= GitLab
+:toc: left
+:author: Jonny
+:revnumber!: 1.0.0
+:revdate: Tuesday, 09 February, 2021
+:doctype:   article
+:encoding:  utf-8
+:lang:      en
+:toc:       left
+:toclevels: 10
+:toc-title: Table of Content
+:sectnums:
+:last-update-label:
+:nofooter!:
+:media: print
+:icons: font
+:pagenums:
+:imagesdir: images/
+:numbered:
+:toc: left
+:xrefstyle: full
+
+== Create SSH KEY AND 2FA Authentication
+
+refer to this site https://docs.gitlab.com/ee/ssh/
+
+  ssh-keygen -t ed25519 -C "jonny.marcello@gmail.com"
+
+Name Your Key Instead of default one
+
+  Enter file in which to save the key (/Users/jonny/.ssh/id_ed25519): /Users/jonny/.ssh/gitlab-personal
+
+
+This stage should result a config file
+
+  eval $(ssh-agent -s)
+  ssh-add gitlab-personal
+
+Copy your public key and paste into gitlab
+
+Mac
+
+ pbcopy < ~/.ssh/gitlab-personal.pub
+
+Linux
+
+ xclip -sel clip < ~/.ssh/gitlab-personal.pub
+
+Test
+
+ ssh -T git@gitlab.com
+
+Check root cause if problem
+
+  ssh -Tvvv git@gitlab.com
+
+Test Git Clone
+
+  git clone git@gitlab.com:jonnyGitLab/poc.git

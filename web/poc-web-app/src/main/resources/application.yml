@@ -1,0 +1,60 @@
+
+
+#local profile
+#===================================================================================================
+spring.profiles: local
+
+server.port: 8080
+
+
+#load dml and ddl, schema.sql and data.sql
+spring.datasource.initialization-mode: "always"
+
+spring.datasource.driver-class-name: com.mysql.jdbc.Driver
+#spring.datasource.url: jdbc:mysql://mysql_db:3307/poc-db?useSSL=false&autoReconnect=true&useUnicode=true&characterEncoding=UTF-8
+#spring.datasource.poolName : spring-data-hikarri-poolname
+#spring.datasource.username: user
+#spring.datasource.password: password
+spring.datasource.url: jdbc:mysql://mysql_container:3307/poc-db?useSSL=false&autoReconnect=true&useUnicode=true&characterEncoding=UTF-8
+spring.datasource.hikari.connectionTimeout: 30000
+spring.datasource.hikari.idleTimeout: 600000
+spring.datasource.hikari.maxLifetime: 1800000
+spring.datasource.hikari.maximum-pool-size: 5
+spring.datasource.testWhileIdle: true
+spring.datasource.validationQuery: SELECT 1 FROM DUAL
+spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.MySQL5InnoDBDialect
+
+#turn off on productions.
+spring.jpa.hibernate.ddl-auto: update
+
+#find a way to encrypt this
+app.jwtSecret: cRfUjXn2r5u8x/A%D*G-KaPdSgVkYp3s6v9y$B&E(H+MbQeThWmZq4t7w!z%C*F-
+
+#expired in half hour 1800000
+app.jwtExpirationMs: 172800000 #2 days
+
+spring.cache.jcache.config: classpath:ehcache.xml
+
+logging.level.org.springframework: ERROR
+
+# logs the SQL statements
+# show query and param logs
+#logging.level.org.hibernate.SQL: DEBUG
+#logging.level.org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+#logging.level.org.hibernate.type: TRACE
+
+#LOG
+com.poc.log.level: DEBUG
+spring.main.banner-mode: OFF
+org.springframework.log.level: ERROR
+org.apache.log.level: ERROR
+#===================================================================================================
+
+
+---
+
+#prod profile
+#===================================================================================================
+spring.profiles: prod
+
+server.port: 9090

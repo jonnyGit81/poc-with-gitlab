@@ -1,0 +1,688 @@
+:internal:
+= Maven
+:toc: left
+:author: Jonny
+:revnumber!: 1.0.0
+:revdate: Tuesday, 09 February, 2021
+:doctype:   article
+:encoding:  utf-8
+:lang:      en
+:toc:       left
+:toclevels: 10
+:toc-title: Table of Content
+:sectnums:
+:last-update-label:
+:nofooter!:
+:media: print
+:icons: font
+:pagenums:
+:imagesdir: images/
+:numbered:
+:toc: left
+:xrefstyle: full
+
+== Global settings.xml (.m2/settings.xml)
+
+- localRepository
+
+Maven stores copies of plug-ins and dependencies locally in the c:\Users\<<your_user_name>>\.m2\repository folder. The localRepository element can be used to change the path of the local repository. For example, <localRepository>c:\mavenrepo</localRepository> will change the repository location to the mavenrepo folder.
+
+- interactiveMode
+
+As the name suggests, when this value is set to true, Maven interacts with the user for input. If the value is false, Maven will try to use sensible defaults. The default is true.
+
+- offline
+
+When set to true, this configuration instructs Maven to not connect to network and operate in an offline mode. With offline mode set to true, Maven will not attempt to download new dependencies or updates to dependencies. The default is false.
+
+- servers
+
+Maven can interact with a variety of servers, such as Git servers, build servers, and remote repository servers. This element allows you to specify security credentials, such as the username and password, which you need to connect to those servers.
+
+- mirrors
+
+As the name suggests, mirrors allow you to specify alternate locations for downloading dependencies from remote repositories. For example, your organization might have mirrored a public repository on their internal network. The mirror element allows you to force Maven use the internal mirrored repository instead of the public repository.
+
+- proxies
+
+Proxies contain the HTTP proxy information needed to connect to the Internet.
+
+== Setting Up a Proxy
+
+Some companies employ HTTP proxies to restrict access to the Internet. In those scenarios, running Maven will result in Unable to download artifact errors. To address this, edit the settings.xml file and add the proxy information specific to your company.
+
+[source,xml]
+----
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0
+                      http://maven.apache.org/xsd/settings-1.0.0.xsd">
+  <proxies>
+    <proxy>
+      <id>companyProxy</id>
+      <active>true</active>
+      <protocol>http</protocol>
+      <host>proxy.company.com</host>
+      <port>8080</port>
+      <username>proxyusername</username>
+      <password>proxypassword</password>
+      <nonProxyHosts />
+    </proxy>
+  </proxies>
+ </settings>
+----
+
+== SECURING PASSWORDS
+
+The password to connect to the proxy server in section 2-2 is stored in clear text in the settings.xml file. If you were to accidentally share your settings.xml file, your password will be compromised. To address this, Maven provides a mechanism to encrypt the passwords that get stored in settings.xml file.
+We begin the encryption process by creating a master password using the following code
+
+ mvn -emp mymasterpassword
+
+ {LCWw0+NAqw0HuYH9HNz+1D7aElXM242PtuyoDXDAuelxjwZC8MyXaACkHSy7tZwU}
+
+Maven requires the newly generated master password to be saved in a settings-security.xml file under .m2 folder. Create a new settings-security.xml file under .m2 folder and copy the following contents into that file.
+
+[source,xml]
+----
+<settingsSecurity>
+  <master>{LCWw0+NAqw0HuYH9HNz+1D7aElXM242PtuyoDXDAuelxjwZC8MyXaACkHSy7tZwU}</master>
+</settingsSecurity>
+----
+
+Run the following command to encrypt the “proxypassword” password. Once the command completes, copy the output and replace the clear text password in settings.xml file with it:
+
+  mvn -ep proxypassword
+
+  {i4RnaIHgxqgHyKYySxor+cvshmHweTAvNjuORNYyu5w=}
+
+Though the preceding process encrypts the passwords and avoids the need to save passwords in clear text, it is important to remember that anyone that has access to settings-security.xml file can easily decode the master password and subsequently decrypt the passwords in the settings.xml file. One mechanism to address this is to store the settings-security.xml file in an external device such as USB drive.
+
+== Using New Repositories
+
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" ?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+  .......
+      <profiles>
+          <profile>
+            <id>your_company</id>
+            <repositories>
+                   <repository>
+                     <id>spring_repo</id>
+                     <url>http://repo.spring.io/release/</url>
+                   </repository>
+                   <repository>
+                     <id>jboss_repo</id>
+                     <url>https://repository.jboss.org/</url>
+                   </repository>
+            </repositories>
+          </profile>
+      </profiles>
+      <activeProfiles>
+      <activeProfile>your_company</activeProfile>
+      </activeProfiles>
+  .......
+</settings>
+----
+
+== Dependency Tree
+
+Although highly useful, transitive dependencies can cause problems and unpredictable side effects, as you might end up including unwanted JAR files or older versions of JAR files. Maven provides a handy dependency plug-in that allows you to visualize project dependency tree.
+
+[source,text]
+----
+[sudha]$mvn dependency:tree
+[INFO] Scanning for projects...
+[INFO] --- maven-dependency-plugin:2.8:tree (default-cli) @ gswm
+[INFO] com.apress.gswmbook:gswm:jar:1.0.0-SNAPSHOT
+[INFO] \- junit:junit:jar:4.11:test
+[INFO]    \- org.hamcrest:hamcrest-core:jar:1.3:test
+[INFO] -----------------------------------------------
+[INFO] BUILD SUCCESS
+----
+
+== Exclusion Dependency
+
+[source,xml]
+----
+<dependencies>
+      <dependency>
+             <groupId>junit</groupId>
+             <artifactId>junit</artifactId>
+             <version>${junit.version}</version>
+             <scope>test</scope>
+             <exclusions>
+                   <exclusion>
+                         <groupId>org.hamcrest</groupId>
+                         <artifactId>hamcrest</artifactId>
+                   </exclusion>
+             </exclusions>
+      </dependency>
+</dependencies>
+----
+
+== Dependency Scope
+
+Consider a Java project that uses JUnit for its unit testing. The JUnit JAR file you included in your project is only needed during testing. You really don’t need to bundle the JUnit JAR in your final production archive. Similarly, consider the MySQL database driver, mysql-connector-java.jar file. You need the JAR file when you are running the application inside a container such as Tomcat but not during code compilation or testing. Maven uses the concept of scope, which allows you to specify when and where you need a particular dependency.
+Maven provides the following six scopes:
+
+- compile: Dependencies with the compile scope are available in the class path in all phases on a project build, test, and run. This is the default scope.
+- provided: Dependencies with the provided scope are available in the class path during the build and test phases. They don’t get bundled within the generated artifact. Examples of dependencies that use this scope include Servlet api, JSP api, and so on.
+- runtime: Dependencies with the runtime scope are not available in the class path during the build phase. Instead they get bundled in the generated artifact and are available during runtime.
+- test: Dependencies with the test scope are available during the test phase. JUnit and TestNG are good examples of dependencies with the test scope.
+- system: Dependencies with the system scope are similar to dependencies with the provided scope, except that these dependencies are not retrieved from the repository. Instead, a hard-coded path to the file system is specified from which the dependencies are used.
+- import: The import scope is applicable for .pom file dependencies only. It allows you to include dependency management information from a remote .pom file. The import scope is available onl
+
+== Properties in pom.xml
+
+Maven provides properties AKA placeholders that can be used inside pom.xml file. Maven properties are referenced in pom.xml file using the ${property_name} notation. There are two types of properties – implicit and user-defined properties.
+
+=== IMPLICIT PROPERTIES
+
+Implicit properties are properties that are available by default to any Maven project. For example, Maven exposes its Project Object Model properties using the “project.” prefix. To access the artifactId value inside the pom.xml file, you can use the ${project. artifactId} as shown in the following:
+
+    <build>
+        <finalName>${project.artifactId}</finalName>
+    </build>
+
+Simillarly, to access properties from settings.xml file, you can use the “settings.” prefix. Finally, the “env.” prefix can be used to access environment variable values. For example, ${env.PATH} will return the value of PATH environment variable
+
+
+== USER-DEFINED PROPERTIES
+
+Maven allows you to declare custom properties in the pom.xml file using the <properties /> element. These properties are highly useful for declaring dependency versions. Listing 4-8 shows the updated pom.xml file with the JUnit version declared as a property. This is especially useful when pom.xml has a lot of dependencies and you need to know or change a version of a particular dependency.
+
+[source,xml]
+----
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.apress.gswmbook</groupId>
+   <!-- Removed for brevity -->
+  <properties>
+   <junit.version>4.12</junit.version>
+  </properties>
+  <developers>
+    <!-- Removed for brevity -->
+ </developers>
+   <dependencies>
+       <dependency>
+              <groupId>junit</groupId>
+              <artifactId>junit</artifactId>
+              <version>${junit.version}</version>
+              <scope>test</scope>
+       </dependency>
+</dependencies>
+</project>
+----
+
+== Goal & Plugins
+
+Plug-ins and their behavior can be configured using the plug-in section of pom.xml. Consider the case where you want to enforce that your project must be compiled with Java 8. As of version 3.8, the Maven compiler plug-in compiles the code against Java 1.6. Thus, you will need to modify the behavior of this plug-in in the pom.xml file , as shown in Listing 5-4.
+
+[source,xml]
+----
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <!-- Project details omitted for brevity -->
+  <dependencies>
+       <!-- Dependency details omitted for brevity -->
+  </dependencies>
+  <build>
+   <plugins>
+    <plugin>
+       <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-compiler-plugin</artifactId>
+      <version>3.8.1</version>
+      <configuration>
+         <source>1.8</source>
+         <target>1.8</target>
+      </configuration>
+    </plugin>
+    </plugins>
+  </build>
+</project>
+----
+
+ mvn compiler:compile
+[INFO] Scanning for projects...
+[INFO] --- maven-compiler-plugin:3.1:compile (default-cli) @ gswm ---
+[INFO] Compiling 1 source file to C:\apress\gswm-book\chapter5\gswm\target\classes
+[INFO] --------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] ------------------------------
+
+Goals in Maven are packaged in plug-ins , which are essentially a collection of one or more goals. In Listing 5-1, the compiler is the plug-in that provides the goal compile.
+Listing 5-2 introduces a pretty nifty goal called clean . As mentioned earlier, the target folder holds Maven-generated temporary files and artifacts. There are times when the target folder becomes huge or when certain files that have been cached need to be cleaned out of the folder. The clean goal accomplishes exactly that, as it attempts to delete the target folder and all its contents.
+
+ mvn clean:clean
+[INFO] Scanning for projects...
+[INFO] --- maven-clean-plugin:2.5:clean (default-cli) @ gswm ---
+[INFO] Deleting C:\apress\gswm-book\chapter5\gswm\target
+[INFO] --------------------------------------------------------
+[INFO] BUILD SUCCESS
+[INFO] --------------------------------------------------------
+
+*By now it should be obvious that running a goal in the command line requires the following syntax:*
+
+ mvn plugin_identifier:goal_identifier
+
+Maven provides an out-of-the box Help plug-in that can be used to list available goals in a given plug-in. Listing 5-3 shows the Help plug-in’s describe goal to display goals inside the compiler plug-in.
+
+*mvn help:describe -Dplugin=compiler*
+
+ [INFO] Scanning for projects...
+Name: Apache Maven Compiler Plugin
+Description: The Compiler Plugin is used to compile the sources of your project.
+Group Id: org.apache.maven.plugins
+Artifact Id: maven-compiler-plugin
+Version: 3.8.1
+Goal Prefix: compiler
+This plugin has 3 goals:
+compiler:compile
+Description: Compiles application sources
+compiler:help
+Description: Display help information on maven-compiler-plugin.
+Call mvn compiler:help -Ddetail=true -Dgoal=<goal-name> to display parameter details.
+compiler:testCompile
+Description: Compiles application test sources .
+
+== Lifecycle and Phases
+
+Maven goals are granular and typically perform one task. Multiple goals need to be executed in an orderly fashion to perform complex operations such as generating artifacts or documentation. Maven simplifies these complex operations via lifecycle and phase abstractions such that build-related operations could be completed with a handful of commands.
+Maven’s build lifecycle constitutes a series of stages that get executed in the same order, independent of the artifact being produced. Maven refers to the stages in a lifecycle as phases . Every Maven project has the following three built-in lifecycles:
+
+- default: This lifecycle handles the compiling, packaging, and deployment of a Maven project.
+- clean: This lifecycle handles the deletion of temporary files and generated artifacts from the target directory.
+- site: This lifecycle handles the generation of documentation and site generation.
+
+To better understand the build lifecycle and its phases, let’s look at some of the phases associated with the default lifecycle:
+
+
+- validate: Runs checks to ensure that the project is correct and that all dependencies are downloaded and available.
+- compile: Compiles the source code.
+- test: Runs unit tests using frameworks. This step doesn’t require that the application be packaged.
+- package: Assembles compiled code into a distributable format, such as JAR or WAR.
+- install: Installs the packaged archive into a local repository. The archive is now available for use by any project running on that machine.
+- deploy: Pushes the built archive into a remote repository for use by other teams and team members.
+
+Maven lifecycle is an abstract concept and can’t be directly executed. Instead, you execute one or more phases. For example, the command mvn package will execute the package phase of the default lifecycle. In addition to clearly defining the ordering of phases in a lifecycle, Maven also automatically executes all the phases prior to a requested phase. So, when the mvn package command is run, Maven will run all prior phases such as compile and test.
+A number of tasks need to be performed in each phase. For that to happen, each phase is associated with zero or more goals. The phase simply delegates those tasks to its associated goals. Figure 5-1 shows the association between lifecycle, phases, goals, and plug-ins
+
+image:1.jpeg[]
+
+== Multimodule Project
+
+image:2.jpeg[]
+
+
+.Parent POM
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.apress.gswmbook</groupId>
+  <artifactId>gswm-parent</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <packaging>pom</packaging>
+  <name>gswm-parent</name>
+  <modules>
+    <module>gswm-web</module>
+    <module>gswm-service</module>
+    <module>gswm-repository</module>
+  </modules>
+</project>
+----
+
+
+== Check Cyclic Dependency
+
+mvn dependency:tree
+
+== Generating Unit Test Reports For Jupiter, Jacoco
+
+.Original
+[source,xml]
+----
+<project>
+
+ <build>
+    <plugins>
+       <plugin>
+         <groupId>org.jacoco</groupId>
+            <artifactId>jacoco-maven-plugin</artifactId>
+             <version>0.8.4</version>
+                <executions>
+                   <execution>
+               <id>jacoco-init</id>
+                       <goals>
+                           <goal>prepare-agent</goal>
+                       </goals>
+                   </execution>
+                   <execution>
+                        <id>jacoco-report</id>
+                        <phase>test</phase>
+                         <goals>
+                       <goal>report</goal>
+                         </goals>
+                   </execution>
+               </executions>
+               </plugin>
+          </plugins>
+    <build>
+
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>2.17</version>
+      </plugin>
+    </plugins>
+  </reporting>
+
+</project>
+----
+
+.Mine in Spring
+[source,xml]
+----
+<build>
+        <plugins>
+            <!--plugins for test-->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.6</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>post-unit-test</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Sets the path to the file which contains the execution data. -->
+                            <dataFile>target/jacoco.exec</dataFile>
+                            <!-- Sets the output directory for the code coverage report. -->
+                            <outputDirectory>target/jacoco-ut</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- maven surfire for reporting -->
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.5.1</version>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>2.22.2</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <jacoco-agent.destfile>target/jacoco.exec</jacoco-agent.destfile>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>1.3.2</version>
+            </plugin>
+        </plugins>
+    </build>
+----
+
+== Generating the SpotBugs Report
+SpotBugs is a tool for detecting defects in Java code. It uses static analysis to detect bug patterns, such as infinite recursive loops and null pointer dereferences.
+
+
+[source,xml]
+----
+<project>
+        <!—Content removed for brevity-->
+  <reporting>
+    <plugins>
+      <plugin>
+        <groupId>com.github.spotbugs</groupId>
+  <artifactId>spotbugs-maven-plugin</artifactId>
+  <version>3.1.12</version>
+      </plugin>
+   </plugins>
+ </reporting>
+</project>
+----
+
+
+== Maven Release
+
+.pom.xml
+[source,xml]
+----
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi=”http://www.w3.org/2001/XMLSchema-instance” xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+        <dependencies>
+            <!-- Content removed for brevity -->
+        </dependencies>
+        <distributionManagement>
+           <repository>
+              <id>nexusReleases</id>
+              <name>Releases</name>
+              <url>http://localhost:8081/repository/maven-releases</url>
+           </repository>
+           <snapshotRepository>
+              <id>nexusSnapshots</id>
+              <name>Snapshots</name>
+              <url>http://localhost:8081/repository/maven-snapshots</url>
+           </snapshotRepository>
+        </distributionManagement>
+        <build>
+            <!-- Content removed for brevity -->
+        </build>
+</project>
+----
+
+*Note* Out of the box, Nexus comes with Releases and Snapshots repositories. By default, SNAPSHOT artifacts will be stored in the Snapshots Repository, and release artifacts will be stored in the Releases repository.
+
+Like most repository managers, deployment to Nexus is a protected operation. For Maven to interact and deploy artifacts on Nexus, you need to provide user with the right access roles in the settings.xml file.
+
+Listing 8-2 shows the settings.xml file with the server information. As you can see, we are using admin user information to connect to Nexus.
+
+*Notice that the IDs declared in the server tag – nexusReleases and nexusSnapshots – must match the IDs of the repository and snapshotRepository declared in the pom.xml file.*
+
+Replace the contents of the settings.xml file in the C:\Users\<<USER_NAME>>\.m2 folder
+
+.m2/settings.xml
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" ?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+<servers>
+   <server>
+      <id>nexusReleases</id>
+      <username>admin</username>
+      <password>admin123</password>
+   </server>
+   <server>
+      <id>nexusSnapshots</id>
+      <username>admin</username>
+      <password>admin123</password>
+   </server>
+</servers>
+</settings>
+----
+
+== Project Release
+
+Releasing a project is a complex process, and it typically involves the following steps:
+
+- Verify that there are no uncommitted changes on the local machine.
+- Remove SNAPSHOT from the version in the pom.xml file.
+- Make sure that project is not using any SNAPSHOT dependencies.
+- Check in the modified pom.xml file to your source control.
+- Create a source control tag of the source code.
+- Build a new version of the artifact, and deploy it to a repository manager.
+- Increment the version in the pom.xml file, and prepare for the next development cycle.
+
+Maven has a release plug-in that provides a standard mechanism for executing the preceding steps and releasing project artifacts. As you can see, as part of its release process, Maven heavily interacts with the source control system. In this section, you will be using Git as the source controls system and GitHub as the remote server that houses repositories. A typical interaction between Maven and GitHub is shown in Figure 8-7. Maven releases are typically performed on a developer or build machine. Maven requires Git client to be installed on such machines. These command-line tools allow Maven to interact with GitHub and perform operations such as checking out code, creating tags, and so forth.
+
+=== Maven Release
+
+Releasing an artifact using Maven’s release process requires using two important goals: *prepare* and *perform*. Additionally,
+the release plug-in provides a clean goal that comes in handy when things go wrong.
+
+==== PREPARE GOAL
+
+The prepare goal , as the name suggests, prepares a project for release. As part of this stage, Maven performs the following operations:
+
+- check-poms: Checks that the version in the pom.xml file has SNAPSHOT in it.
+- scm-check-modifications: Checks if there are any uncommitted changes.
+- check-dependency-snapshots: Checks the pom file to see if there are any SNAPSHOT dependencies. It is a best practice for your project to use released dependencies. Any SNAPSHOT dependencies found in the pom.xml file will result in release failure.
+- map-release-versions: When prepare is run in an interactive mode, the user is prompted for a release version.
+- map-development-versions: When prepare is run in an interactive mode, the user is prompted for the next development version.
+- generate-release-poms: Generates the release pom file.
+- scm-commit-release: Commits the release of the pom file to the SCM.
+- scm-tag: Creates a release tag for the code in the SCM.
+- rewrite-poms-for-development: The pom file is updated for the new development cycle.
+- remove-release-poms: Deletes the pom file generated for the release.
+- scm-commit-development: Submits the pom.xml file with the development version.
+- end-release: Completes the prepare phase of the release.
+
+To facilitate this, you would provide the SCM information in the project’s pom.xml file
+
+.pom.xml
+[source,xml]
+----
+<project>
+  <modelVersion>4.0.0</modelVersion>
+        <!-- Content removed for brevity -->
+    <scm>
+      <connection>scm:git:https://github.com/bava/intro-maven.git</connection>
+      <developerConnection>scm:git:https://github.com/bava/intro-maven.git</developerConnection>
+      <url>https://github.com/bava/intro-maven</url>
+    </scm>
+   <!-- Content removed for brevity -->
+</project>
+----
+
+In order for Maven to communicate successfully with the GitHub, it needs GitHub credentials. You provide that information in the settings.xml file
+
+The ID for the server element is declared as GitHub , as it must match the hostname
+
+.settings.xml
+[source,xml]
+----
+<?xml version="1.0" encoding="UTF-8" ?>
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/SETTINGS/1.0.0 http://maven.apache.org/xsd/settings-1.0.0.xsd">
+<servers>
+   <server>
+      <id>nexusReleases</id>
+      <username>admin</username>
+      <password>admin123</password>
+   </server>
+   <server>
+      <id>nexusSnapshots</id>
+      <username>admin</username>
+      <password>admin123</password>
+   </server>
+   <server>
+     <id>github</id>
+     <username>[your_github_account_name]</username>
+     <password>[your_github_account_password]</password>
+   </server>
+ </servers>
+</settings>
+----
+
+
+You now have all of the configuration required for Maven’s prepare goal. Listing 8-5 shows the results of running the prepare goal. Because the prepare goal was run in interactive mode, Maven will prompt you for the release version, release tag or label, and the new development version. Accept Maven’s proposed default values by pressing Enter for each prompt.
+
+
+    mvn release:prepare
+
+    [INFO] Scanning for projects...
+    [INFO]
+    [INFO] --------------< com.apress.gswmbook:gswm >--------------
+    [INFO] Building Getting Started with Maven 1.0.0-SNAPSHOT
+    [INFO] --- maven-release-plugin:2.5.3:prepare (default-cli) @ gswm ---
+    [INFO] Verifying that there are no local modifications...
+    [INFO] Executing: cmd.exe /X /C "git rev-parse --show-toplevel"
+    [INFO] Working directory: C:\apress\gswm-book\chapter8\gswm
+    [INFO] Executing: cmd.exe /X /C "git status --porcelain ."
+    What is the release version for "Getting Started with Maven"? (com.apress.gswmbook:gswm) 1.0.0: :
+    What is SCM release tag or label for "Getting Started with Maven"? (com.apress.gswmbook:gswm) gswm-1.0.0: :
+    What is the new development version for "Getting Started with Maven"? (com.apress.gswmbook:gswm) 1.0.1-SNAPSHOT: :
+    [INFO] Checking in modified POMs...
+    [INFO] Tagging release with the label gswm-1.0.0...
+    [INFO] Executing: cmd.exe /X /C "git tag -F C:\Users\bavara\AppData\Local\Temp\maven-scm-73613791.commit gswm-1.0.0"
+    [INFO] Executing: cmd.exe /X /C "git push https://github.com/bava/intro-maven.git refs/tags/gswm-1.0.0"
+    [INFO] Release preparation complete.
+    [INFO] BUILD SUCCESS
+
+Notice the Git commands getting executed as part of the prepare goal. Successful completion of the prepare goal will result in the creation of a Git tag, as shown in Figure 8-12. The pom.xml file in the gswm project will now have version 1.0.1-SNAPSHOT.
+
+==== CLEAN GOAL
+
+The prepare goal performs a lot of activities and generates temporary files, such as release.properties and pom.xml.releaseBackup, as part of its execution. Upon successful completion, it cleans up those temporary files. Sometimes the prepare goal might fail (e.g., is unable to connect to Git) and leave the project in a dirty state. This is where the release plug-in’s clean goal comes into the picture. As the name suggests, it deletes any temporary files generated as part of release execution.
+
+*The release plug-in’s clean goal must be used only when the prepare goal fails.*
+
+==== PERFORM GOAL
+
+The perform goal is responsible for checking out code from the newly created tag and builds and deploys the released code into the remote repository.
+The following phases are executed as part of perform goal:
+
+- verify-completed-prepare-phases: This validates that a prepare phase has been executed prior to running the perform goal.
+- checkout-project-from-scm: Checks out the released code from the SCM tag.
+- run-perform-goal: Executes the goals associated with perform. The default goal is deploy.
+
+ mvn release:perform
+
+ [INFO] -------------< com.apress.gswmbook:gswm >---------------
+[INFO] Building Getting Started with Maven 1.0.1-SNAPSHOT
+[INFO] --------------------[ jar ]-----------------------------
+[INFO] --- maven-release-plugin:2.5.3:perform (default-cli) @ gswm ---
+[INFO] Checking out the project to perform the release ...
+[INFO] Executing: cmd.exe /X /C "git clone --branch gswm-1.0.0 https://github.com/bava/intro-maven.git C:\apress\gswm-book\chapter8\gswm\target\checkout"
+[INFO] Invoking perform goals in directory C:\apress\gswm-book\chapter8\gswm\target\checkout
+[INFO] Executing goals 'deploy'...
+ [INFO] Building jar: C:\apress\gswm-book\chapter8\gswm\target\checkout\target\gswm-1.0.0-javadoc.jar
+ [INFO] --- maven-install-plugin:2.4:install (default-install) @ gswm ---
+ [INFO] Installing C:\apress\gswm-book\chapter8\gswm\target\checkout\target\gswm-1.0.0.jar to C:\Users\bavara\.m2\repository\com\apress\gswmbook\gswm\1.0.0\gswm-1.0.0.jar
+ [INFO] --- maven-deploy-plugin:2.7:deploy (default-deploy) @ gswm ---
+[INFO] Uploading to nexusReleases: http://localhost:8081/repository/maven-releases/com/apress/gswmbook/gswm/1.0.0/gswm-1.0.0.jar
+[INFO] Uploaded to nexusReleases: http://localhost:8081/repository/maven-releases/com/apress/gswmbook/gswm/1.0.0/gswm-1.0.0.jar (2.4 kB at 14 kB/s)
+[INFO] Uploading to nexusReleases: http://localhost:8081/repository/maven-releases/com/apress/gswmbook/gswm/1.0.0/gswm-1.0.0.pom
+[INFO] Uploaded to nexusReleases: http://localhost:8081/repository/maven-releases/com/apress/gswmbook/gswm/1.0.0/gswm-1.0.0-javadoc.jar (22 kB at 84 kB/s)
+[INFO] BUILD SUCCESS
+
+image:4.jpeg[]
+
+
+== Continuous Integration
+
+Continuous integration or CI is a software development best practice where developers integrate changes to their code into a common repository several times a day. Each committed change would result in an automatic build that would compile the code, run tests, and generate a new version of the artifact. Any errors during the build process will be immediately reported to the development team. This frequent code integration allows developers to catch and resolve integration issues early in the development cycle.
+
+A visual representation of continuous integration along with the components involved is shown in Figure 9-1. The CI flow gets kicked off with a developer submitting her changes to a source control system such as Git or SVN. A CI server gets notified or watches/polls for new code changes and upon finding a change will check out the source code and starts the build process. On a successful build, the CI server can publish the artifact to a repository or to a test server. As the last step, notifications on build status get sent to the development team.
+
+image:5.jpeg[]

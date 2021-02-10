@@ -1,0 +1,143 @@
+<!-- @See https://mkyong.com/logging/logback-xml-example/ -->
+<configuration>
+    <!-- CONSOLE LOG -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+       <!-- <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n
+            </Pattern>
+        </layout>-->
+        <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="com.poc.support.rest.logger.masking.PattenMaskingLayout">
+                <maskPattern>\"ssn\"\s*:\s*\"(.*?)\"</maskPattern> <!-- SSN JSON pattern -->
+                <!-- <maskPattern>\"address\"\s*:\s*\"(.*?)\"</maskPattern>  address JSON pattern -->
+                <!-- <maskPattern>(\d+\.\d+\.\d+\.\d+)</maskPattern>  simple IPv4 pattern -->
+                <maskPattern>(\w+@\w+\.\w+)</maskPattern> <!-- simple email pattern -->
+                <!-- <maskPattern>Cookie:\s*(.*?)\s</maskPattern> Cookie header pattern -->
+                <maskPattern>\"password\"\s*:\s*\"(.*?)\"</maskPattern> <!-- password JSON pattern -->
+                <pattern>%d [%thread] %-5level %logger{35} - %msg%n</pattern>
+            </layout>
+            <!--<layout class="com.mgt.admin.logback.masking.MaskingPatternLayout">
+                <patternsProperty>(password)|(karthik)</patternsProperty>
+                <pattern>%d [%thread] %-5level %logger{35} - %msg%n</pattern>
+            </layout>-->
+            <!-- <pattern>%d %p %c{1.} [%t] - %m%n </pattern>-->
+        </encoder>
+    </appender>
+
+    <logger name="com.poc" level="${com.poc.log.level}" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <logger name="org.springframework" level="${org.springframework.log.level}" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!--<logger name="org.apache" level="${org.apache.log.level}" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <root level="error">
+        <appender-ref ref="CONSOLE"/>
+    </root>-->
+
+    <!-- FILE ROOLING -->
+    <property name="HOME_LOG" value="logs/poc-web.log"/>
+
+    <appender name="FILE-ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${HOME_LOG}</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/archived/management-admin.%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
+            <!-- each archived file, size max 10MB -->
+            <maxFileSize>10MB</maxFileSize>
+            <!-- total size of all archive files, if total size > 2GB, it will delete old archived file -->
+            <totalSizeCap>2GB</totalSizeCap>
+            <!-- 30 days to keep -->
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+
+        <encoder  class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+            <layout class="com.poc.support.rest.logger.masking.PattenMaskingLayout">
+                <maskPattern>\"ssn\"\s*:\s*\"(.*?)\"</maskPattern> <!-- SSN JSON pattern -->
+                <!-- <maskPattern>\"address\"\s*:\s*\"(.*?)\"</maskPattern>  address JSON pattern -->
+                <!-- <maskPattern>(\d+\.\d+\.\d+\.\d+)</maskPattern>  simple IPv4 pattern -->
+                <maskPattern>(\w+@\w+\.\w+)</maskPattern> <!-- simple email pattern -->
+                <!-- <maskPattern>Cookie:\s*(.*?)\s</maskPattern> Cookie header pattern -->
+                <maskPattern>\"password\"\s*:\s*\"(.*?)\"</maskPattern> <!-- password JSON pattern -->
+                <pattern>%d [%thread] %-5level %logger{35} - %msg%n</pattern>
+            </layout>
+            <!--<layout class="com.mgt.admin.logback.masking.MaskingPatternLayout">
+                <patternsProperty>(password)|(karthik)</patternsProperty>
+                <pattern>%d %p %c{1.} [%t] - %m%n</pattern>
+            </layout>-->
+           <!-- <pattern>%d %p %c{1.} [%t] - %m%n </pattern>-->
+        </encoder>
+    </appender>
+
+  <!--  <logger name="com.mgt" level="${com.mgt.log.level}" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE-ROLLING"/>
+    </logger>
+
+    <root level="error">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE-ROLLING"/>
+    </root>-->
+
+    <!-- SEND TO TO EMAIL
+     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>
+                %d{HH:mm:ss.SSS} [%t] %-5level %logger{36} - %msg%n
+            </Pattern>
+        </layout>
+    </appender>
+
+    <appender name="EMAIL" class="ch.qos.logback.classic.net.SMTPAppender">
+        <smtpHost>smtp.mailgun.org</smtpHost>
+        <smtpPort>25</smtpPort>
+        <username>123</username>
+        <password>123</password>
+        <to>TO_EMAIL</to>
+        <to>RO_ANOTHER_EMAIL</to>
+        <from>FROM_EMAIL</from>
+        <subject>TESTING: %logger{20} - %m</subject>
+
+        <layout class="ch.qos.logback.classic.html.HTMLLayout"/>
+    </appender>
+
+    <logger name="com.mkyong" level="error" additivity="false">
+        <appender-ref ref="EMAIL"/>
+    </logger>
+
+    <root level="error">
+        <appender-ref ref="CONSOLE"/>
+    </root>
+    -->
+
+    <!-- Logs Asynchronously -->
+    <!--
+        <appender name="FILE-ROLLING" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            &lt;!&ndash; //... &ndash;&gt;
+        </appender>
+    -->
+
+    <appender name="ASYNC" class="ch.qos.logback.classic.AsyncAppender">
+        <appender-ref ref="FILE-ROLLING" />
+    </appender>
+
+ <!--   <root level="debug">
+        <appender-ref ref="ASYNC"/>
+    </root>
+-->
+    <logger name="com.mgt" level="${com.mgt.log.level}" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC"/>
+    </logger>
+
+    <root level="error">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="ASYNC"/>
+    </root>
+</configuration>

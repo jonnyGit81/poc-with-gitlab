@@ -1,0 +1,83 @@
+version: '2.1'
+
+services:
+  # $ mysql -uroot -h127.0.0.1 -p
+  mysql-service:
+    image: mysql:5.7
+    networks:
+      - spring-boot-mysql-network
+    mem_limit: 350m
+    ports:
+      - "3307:3306"
+    container_name: mysql_container
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpwd
+      - MYSQL_DATABASE=poc-db
+      #- MYSQL_USER=user
+      #- MYSQL_PASSWORD=password
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-uroot", "-prootpwd", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - db_data:/var/lib/mysql
+
+  web-service:
+    build: #web/poc-web-app
+      context: ./web/poc-web-app
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - spring-boot-mysql-network
+    depends_on:
+      - mysql-service:
+          - condition: service_healthy
+    mem_limit: 350m
+    environment:
+      - SPRING_PROFILES_ACTIVE=local
+
+networks:
+  spring-boot-mysql-network:
+    driver: bridge
+
+volumes:
+  db_data:
+
+
+  # $ mysql -uroot -h127.0.0.1 -p
+ # mysql-service:
+  #  image: mysql:5.7
+  #  #container_name: mysql
+  #  mem_limit: 350m
+  #  #networks:
+    #  - my-network
+   # ports:
+   #   - "3307:3306"
+   # container_name: mysql_container
+   # environment:
+   #   - MYSQL_ROOT_PASSWORD=rootpwd
+   #   - MYSQL_DATABASE=poc-db
+   #   - MYSQL_USER=user
+   #   - MYSQL_PASSWORD=password
+   # healthcheck:
+   #   test: ["CMD", "mysqladmin" ,"ping", "-uuser", "-ppassword", "-h", "localhost"]
+   #   interval: 10s
+   #   timeout: 5s
+   #   retries: 10
+   # volumes:
+   #   - db_data:/var/lib/mysql
+      #- ./data/db/web:/var/lib/mysql
+      #- ./init:/docker-entrypodint-initdb.d
+      #- dbdata:/var/lib/mysql
+#volumes:
+#  dbdata:
+
+#networks:
+#  my-network:
+#    name: my-network
+
+# volumes:
+#  db_data:
+#    driver: local
