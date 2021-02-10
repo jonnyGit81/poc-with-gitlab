@@ -65,3 +65,4 @@ Uder .ssh/config add this
     Host gitlab.com
       Preferredauthentications publickey
       IdentityFile ~/.ssh/jonny-personal-gitlab
+
