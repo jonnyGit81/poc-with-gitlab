@@ -67,5 +67,3 @@ Uder .ssh/config add this
       IdentityFile ~/.ssh/jonny-personal-gitlab
 
 
-
-sdfsdf
