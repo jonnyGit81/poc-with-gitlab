@@ -58,3 +58,10 @@ Check root cause if problem
 Test Git Clone
 
   git clone git@gitlab.com:jonnyGitLab/poc.git
+
+Uder .ssh/config add this
+
+    # GitLab.com
+    Host gitlab.com
+      Preferredauthentications publickey
+      IdentityFile ~/.ssh/jonny-personal-gitlab
