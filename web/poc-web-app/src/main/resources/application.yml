@@ -57,6 +57,8 @@ com.poc.log.level: DEBUG
 spring.main.banner-mode: OFF
 org.springframework.log.level: ERROR
 org.apache.log.level: ERROR
+
+spring.h2.console.enabled: true
 #===================================================================================================
 
 

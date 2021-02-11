@@ -74,5 +74,16 @@
         </dependency>
     </dependencies>
 
+    <distributionManagement>
+        <repository>
+            <id>astech-release</id>
+            <url>http://34.101.255.208:8081/nexus/content/repositories/astech-release</url>
+        </repository>
+        <snapshotRepository>
+            <id>astech-snapshot</id>
+            <url>http://34.101.255.208:8081/nexus/content/repositories/astech-snapshot</url>
+        </snapshotRepository>
+    </distributionManagement>
+
 </project>
 

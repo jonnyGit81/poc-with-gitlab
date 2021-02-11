@@ -1,0 +1,508 @@
+:internal:
+= Gitlab
+:toc: left
+:author: Jonny
+:revnumber!: 1.0.0
+:revdate: Tuesday, 09 February, 2021
+:doctype:   article
+:encoding:  utf-8
+:lang:      en
+:toc:       left
+:toclevels: 10
+:toc-title: Table of Content
+:sectnums:
+:last-update-label:
+:nofooter!:
+:media: print
+:icons: font
+:pagenums:
+:imagesdir: images/
+:numbered:
+:toc: left
+:xrefstyle: full
+
+
+== TODO
+
+=== Instal openjdk-8-jdk
+
+    sudo -i
+
+    sudo apt-get update
+
+    sudo apt-get install openjdk-8-jdk
+
+    sudo vim /etc/profile
+
+    export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64/
+    PATH=$PATH:$HOME/bin:$JAVA_HOME/bin
+
+=== Install Jenkins
+
+    https://www.popularowl.com/blog/installing-configuring-jenkinsci-nginx/
+
+    sudo apt-get update
+
+    wget -q -O - https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo apt-key add -
+
+    sudo vim /etc/apt/sources.list
+
+add this at the bottom
+
+    # Jenkins software repository
+    deb https://pkg.jenkins.io/debian-stable binary/
+
+    sudo apt-get update
+
+    sudo apt-get install jenkins
+
+Change Jenkins Port
+
+    sudo vi /etc/default/jenkins
+
+    JENKINS_ARGS="--webroot=/var/cache/$NAME/war --httpPort=8090"
+
+Action
+
+    sudo systemctl start jenkins
+    sudo systemctl status jenkins
+    sudo systemctl stop jenkins
+
+
+First Password:
+
+   /var/lib/jenkins/secrets/initialAdminPassword
+
+
+=== Instal Nginx
+
+    sudo apt install nginx
+
+The above commands will:
+
+Install the Nginx server
+Navigate you to Nginx configuration directory.
+Backup default Nginx proxy configuration.
+Open the new default configuration file with vi editor (you can of course use the Linux file editor of your choice)
+Now you have to add the following contents to the default configuration file to finish Nginx setup.
+
+
+[source,sh]
+----
+# Redirect to Jenkins on port 8080
+upstream app_server {
+    server 127.0.0.1:8090 fail_timeout=0;
+}
+
+server {
+listen   80;
+listen   [::]:80 default ipv6only=on;
+
+	# Make site accessible from http://localhost/
+	server_name localhost;
+
+	location / {
+	    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	    proxy_set_header Host $http_host;
+	    proxy_redirect off;
+
+	    if (!-f $request_filename) {
+	      proxy_pass http://app_server;
+	      break;
+	    }
+	}
+}
+----
+
+    sudo service nginx restart
+
+After start you can access http://IP:80
+
+example http://34.101.255.208:80/
+
+- Protecting JenkinsCI installation with basic login password
+
+If you are planning to have limited number of users who can access your Jenkins CI server, I would recommend to protect the access to overall site with basic username / password authentication.
+
+This can be implemented by Nginx with the help of .htpasswd file which stores all users who can access the site.
+
+.htpasswd file can be generated with the following htpasswd utility by providing it the path where to store the file (it will prompt for user password)
+
+    htpasswd -c /etc/nginx/.htpasswd username
+
+Once you have the file created you will need to update default Nginx configuration file we created in the previous step.
+
+    cd /etc/nginx/sites-available
+    vi default
+
+[source,sh]
+----
+# Redirect to Jenkins on port 8080
+upstream app_server {
+    server 127.0.0.1:8080 fail_timeout=0;
+}
+
+server {
+	listen   80;
+	listen   [::]:80 default ipv6only=on;
+
+	# Make site accessible from http://localhost/
+	server_name localhost;
+
+	location / {
+	    # Adding basic authorisation to Nginx
+	    auth_basic "Please Login";
+	    auth_basic_user_file /etc/nginx/.htpasswd;
+
+	    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+	    proxy_set_header Host $http_host;
+	    proxy_redirect off;
+
+	    if (!-f $request_filename) {
+	      proxy_pass http://app_server;
+	      break;
+	    }
+	}
+}
+----
+
+Note the new added lines auth_basic and auth_basic_user_file lines I just added.
+We now have to restart Nginx in order to apply new configuration
+
+ sudo service nginx restart
+
+- Custom Url for JenkinsCI server
+
+As one of the readers pointed in the comments under this post, there might be a requirement to run Jenkins under custom url like hostname/jenkinsapp
+
+In this case, you would have to setup the Jenkins to accept custom url.
+
+This can be done via JENKINS_ARGS environment variable. It requires restarting Jenkins server.
+
+For example:
+
+  sudo systemctl stop jenkins
+
+  export JENKINS_ARGS="--prefix=/jenkinsapp"
+
+  export JENKINS_ARGS="--prefix=/astech-build"
+
+  sudo systemctl start jenkins
+
+of course in
+
+    cd /etc/nginx/sites-available
+    vi default
+
+set the server_name to astech-build
+
+now try access :
+
+- Disabling access to port 8080 to external requests
+
+
+Now we have our Jenkins CI server listening 8080 and Nginx proxing all incoming requests from port 80 to 8080. The last step we need in to close direct access to the Jenkins through 8080 so all requests are coming through standard http port 80.
+
+For this we are going to use iptables
+
+Iptables is very powerful tool to configure firewall rules on your box but for our needs only 2 shell command requests are needed:
+
+ iptables -A INPUT -p tcp --dport 8090 -s localhost -j ACCEPT
+
+ iptables -A INPUT -p tcp --dport 8090 -j DROP
+
+
+We are instructing Ubuntu to allow all the incoming requests to 8080 port from localhost (internal). And dropping all other requests.
+
+After these are run you shouldn’t be able to access http://yourdomain:8080 directly anymore. And http://yourdomain should still redirect to Jenkins as before.
+
+- Login to jenkins user
+
+  sudo -i
+
+  sudo - jenkins
+
+
+So if you try to login as or switch to the Jenkins user, the system will not allow it.
+
+The best way to work around this is to start a shell using the Jenkins user:
+
+ $ sudo su - jenkins -s/bin/bash
+ $ whoami
+ jenkins
+ $ echo $HOME
+ /var/lib/jenkins
+
+ $ cd .ssh
+ $ pwd
+ /var/lib/jenkins/.ssh
+ $
+
+
+=== Install JFrog Artifactory
+
+https://computingforgeeks.com/configure-jfrog-artifactory-behind-nginx-reverse-proxy-letsencrypt/
+
+
+====  Install Docker Engine
+
+- Remove if any
+
+    sudo apt update
+    sudo apt remove docker docker-engine docker.io 2>/dev/null
+
+- Install Docker
+
+    sudo apt -y install apt-transport-https ca-certificates curl software-properties-common
+
+Add Docker’s official GPG key:
+
+   curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+Add stable repository:
+
+ sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+
+Install Docker CE
+
+    sudo apt update
+    sudo apt -y install docker-ce docker-ce-cli containerd.io
+
+If you would like to use Docker as a non-root user, you should now consider adding your user to the “docker” group with something like:
+
+    sudo usermod -aG docker $USER
+
+    docker -v
+
+
+=== JFrog Artifactory Docker Image
+
+    docker pull docker.bintray.io/jfrog/artifactory-oss:latest
+
+or
+
+    docker pull docker.bintray.io/jfrog/artifactory-cpp-ce
+
+
+Create data directory on host system to ensure data used on container is persistent.
+
+    sudo mkdir -p /jfrog/artifactory
+    sudo chown -R 1030 /jfrog/
+
+
+    docker run --name artifactory -d -p 8081:8081 \
+    -v /jfrog/artifactory:/var/opt/jfrog/artifactory \
+    docker.bintray.io/jfrog/artifactory-oss:latest
+
+You can pass Java system properties to the JVM running Artifactory using EXTRA_JAVA_OPTIONS. Check more on Docker setup link. See example below.
+    https://www.jfrog.com/confluence/display/JFROG/Installing+Artifactory
+
+example
+
+    docker run --name artifactory -d -p 8081:8081 \
+   -v /jfrog/artifactory:/var/opt/jfrog/artifactory \
+   -e EXTRA_JAVA_OPTIONS='-Xms512m -Xmx2g -Xss256k -XX:+UseG1GC' \
+   docker.bintray.io/jfrog/artifactory-pro:latest
+
+Create Artifactory service unit file.
+
+   sudo vim /etc/systemd/system/artifactory.service
+
+add :
+
+[source,text]
+----
+[Unit]
+Description=Setup Systemd script for Artifactory Container
+After=network.target
+
+[Service]
+Restart=always
+ExecStartPre=-/usr/bin/docker kill artifactory
+ExecStartPre=-/usr/bin/docker rm artifactory
+ExecStart=/usr/bin/docker run --name artifactory -p 8081:8081 \
+-v /jfrog/artifactory:/var/opt/jfrog/artifactory \
+docker.bintray.io/jfrog/artifactory-oss:latest
+ExecStop=-/usr/bin/docker kill artifactory
+ExecStop=-/usr/bin/docker rm artifactory
+
+[Install]
+WantedBy=multi-user.target
+----
+
+    sudo systemctl daemon-reload
+
+    sudo systemctl start artifactory
+
+    sudo systemctl enable artifactory
+
+    sudo systemctl status artifactory
+
+Also check service binding with:
+
+    ss -tunelp | grep 8081
+
+oepn jfrog :
+
+
+
+open nginx config file
+
+    sudo vim /etc/nginx/nginx.conf
+
+config multiple url https://gist.github.com/soheilhy/8b94347ff8336d971ad0
+
+
+              +--- host --------> node.js on localhost:8080
+                  |
+users --> nginx --|--- host/blog ---> node.js on localhost:8181
+                  |
+                  +--- host/mail ---> node.js on localhost:8282
+
+
+[source,txt]
+----
+server {
+    listen   80;
+	listen   [::]:80 default ipv6only=on;
+
+	# Make site accessible from http://localhost/
+	server_name localhost;
+
+    location /astech-build {
+        proxy_pass http://127.0.0.1:8090;
+    }
+
+    location /artifactory {
+        proxy_pass http://127.0.0.1:8081;
+    }
+}
+
+###########################################################
+## this configuration was generated by JFrog Artifactory ##
+###########################################################
+
+## server configuration
+server {
+    listen 80 ;
+    server_name localhost;
+    if ($http_x_forwarded_proto = '') {
+        set $http_x_forwarded_proto  $scheme;
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:8090;
+    }
+
+    ## Application specific logs
+    ## access_log /var/log/nginx/localhost-access.log timing;
+    ## error_log /var/log/nginx/localhost-error.log;
+    rewrite ^/$ /ui/ redirect;
+    rewrite ^/ui$ /ui/ redirect;
+    proxy_buffer_size          128k;
+    proxy_buffers              4 256k;
+    proxy_busy_buffers_size    256k;
+    chunked_transfer_encoding on;
+    client_max_body_size 0;
+    location / {
+    proxy_read_timeout  2400s;
+    proxy_pass_header   Server;
+    proxy_cookie_path   ~*^/.* /;
+    proxy_pass          http://34.101.255.208:8082;
+    proxy_set_header    X-JFrog-Override-Base-Url $http_x_forwarded_proto://$host:$server_port;
+    proxy_set_header    X-Forwarded-Port  $server_port;
+    proxy_set_header    X-Forwarded-Proto $http_x_forwarded_proto;
+    proxy_set_header    Host              $http_host;
+    proxy_set_header    X-Forwarded-For   $proxy_add_x_forwarded_for;
+
+        location ~ ^/artifactory/ {
+            proxy_pass    http://34.101.255.208:8081;
+        }
+    }
+}
+----
+
+
+.reverse proxy nginx
+[source,text]
+----
+upstream jenkins {
+  keepalive 32; # keepalive connections
+  server 127.0.0.1:8090; # jenkins ip and port
+}
+
+# Required for Jenkins websocket agents
+map $http_upgrade $connection_upgrade {
+  default upgrade;
+  '' close;
+}
+
+server {
+  listen          80;       # Listen on port 80 for IPv4 requests
+
+  server_name     localhost;  # replace 'jenkins.example.com' with your server domain name
+
+  # this is the jenkins web root directory
+  # (mentioned in the /etc/default/jenkins file)
+  root            /var/run/jenkins/war/;
+
+  access_log      /var/log/nginx/jenkins/access.log;
+  error_log       /var/log/nginx/jenkins/error.log;
+
+  # pass through headers from Jenkins that Nginx considers invalid
+  ignore_invalid_headers off;
+
+  location ~ "^/static/[0-9a-fA-F]{8}\/(.*)$" {
+    # rewrite all static files into requests to the root
+    # E.g /static/12345678/css/something.css will become /css/something.css
+    rewrite "^/static/[0-9a-fA-F]{8}\/(.*)" /$1 last;
+  }
+
+  location /userContent {
+    # have nginx handle all the static requests to userContent folder
+    # note : This is the $JENKINS_HOME dir
+    root /var/lib/jenkins/;
+    if (!-f $request_filename){
+      # this file does not exist, might be a directory or a /**view** url
+      rewrite (.*) /$1 last;
+      break;
+    }
+    sendfile on;
+  }
+
+  location / {
+      sendfile off;
+      proxy_pass         http://jenkins;
+      proxy_redirect     default;
+      proxy_http_version 1.1;
+
+      # Required for Jenkins websocket agents
+      proxy_set_header   Connection        $connection_upgrade;
+      proxy_set_header   Upgrade           $http_upgrade;
+
+      proxy_set_header   Host              $host;
+      proxy_set_header   X-Real-IP         $remote_addr;
+      proxy_set_header   X-Forwarded-For   $proxy_add_x_forwarded_for;
+      proxy_set_header   X-Forwarded-Proto $scheme;
+      proxy_max_temp_file_size 0;
+
+      #this is the maximum upload size
+      client_max_body_size       10m;
+      client_body_buffer_size    128k;
+
+      proxy_connect_timeout      90;
+      proxy_send_timeout         90;
+      proxy_read_timeout         90;
+      proxy_buffering            off;
+      proxy_request_buffering    off; # Required for HTTP CLI commands
+      proxy_set_header Connection ""; # Clear for keepalive
+  }
+
+}
+----
+nginx -s reload
+
+=== Gitlab With JFrog Artifcatory Integration
+
+====
+
