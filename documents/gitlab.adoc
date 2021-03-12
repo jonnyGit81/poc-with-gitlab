@@ -23,9 +23,17 @@
 
 == Create SSH KEY AND 2FA Authentication
 
+git config --global user.name admin.tech@alphasirius.io
+git config --global user.email admin.tech@alphasirius.io
+
+git config --global user.name asirius-jonny
+git config --global user.email jonny@alphasirius.io
+
 refer to this site https://docs.gitlab.com/ee/ssh/
 
   ssh-keygen -t ed25519 -C "jonny.marcello@gmail.com"
+
+  ssh-keygen -t ed25519 -C "admin.tech@alphasirius.io"
 
 Name Your Key Instead of default one
 
@@ -42,6 +50,8 @@ Copy your public key and paste into gitlab
 Mac
 
  pbcopy < ~/.ssh/gitlab-personal.pub
+
+  pbcopy < ~/.ssh/admin-tech-alphasirius.pub
 
 Linux
 

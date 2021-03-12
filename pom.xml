@@ -11,7 +11,7 @@
     </parent>
     <groupId>com.poc</groupId>
     <artifactId>poc-dashboard-parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>1.0.1-SNAPSHOT</version>
     <name>poc-dashboard-parent</name>
     <description>POC Application</description>
 
@@ -25,12 +25,12 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
 
-        <poc.web.support.version>1.0.0-SNAPSHOT</poc.web.support.version>
-        <poc.web.cache.version>1.0.0-SNAPSHOT</poc.web.cache.version>
-        <poc.web.db.version>1.0.0-SNAPSHOT</poc.web.db.version>
-        <poc.web.security.version>1.0.0-SNAPSHOT</poc.web.security.version>
-        <poc.web.app.version>1.0.0-SNAPSHOT</poc.web.app.version>
-        <poc.web.aop.version>1.0.0-SNAPSHOT</poc.web.aop.version>
+        <poc.web.support.version>1.0.1-SNAPSHOT</poc.web.support.version>
+        <poc.web.cache.version>1.0.1-SNAPSHOT</poc.web.cache.version>
+        <poc.web.db.version>1.0.1-SNAPSHOT</poc.web.db.version>
+        <poc.web.security.version>1.0.1-SNAPSHOT</poc.web.security.version>
+        <poc.web.app.version>1.0.1-SNAPSHOT</poc.web.app.version>
+        <poc.web.aop.version>1.0.1-SNAPSHOT</poc.web.aop.version>
 
 
         <!-- Global Thirdparty Jar Version -->

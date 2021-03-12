@@ -1,0 +1,146 @@
+:internal:
+= Asirius - GitLab
+:toc: left
+:author: Jonny
+:revnumber!: 1.0.0
+:revdate: Thursday, 11 March, 2021
+:doctype:   article
+:encoding:  utf-8
+:lang:      en
+:toc:       left
+:toclevels: 20
+:toc-title: Table of Content
+:sectnums:
+:last-update-label:
+:nofooter!:
+:media: print
+:icons: font
+:pagenums:
+:imagesdir: images/
+:numbered:
+:toc: left
+:xrefstyle: full
+
+== Project Hand Over From Frank
+
+.Mapping existing shared branch with the document
+image:3.jpeg[]
+
+== Github Account (Admin)
+
+    Url: https://github.com/
+
+    Email: admin.tech@alphasirius.io
+
+    Password: Servd@1234
+
+    2FA Code: Can ask Gan help for the 2FA Code
+
+.Shared Code Repository from Frank
+image:1.jpeg[]
+
+== ServD
+
+=== Unknown Group
+
+==== Food-Ordering-Backend
+
+*Need To Confirm, is this repository is used?*
+
+=== Backend
+
+==== Food-Ordering-Superadmin-Web-Backend (Superadmin Backend)
+
+- 1. Programming Language : *Java*
+
+- 2. Pull from branch *main*
+
+image:4.jpeg[]
+
+- 3. Commit and push to our Alphasirius Gitlab (*Branch Master*)
+
+
+==== Merchant-App-Backend (Merchant Admin and APP Backend)
+
+- 1. Programming Language : *Java*
+
+- 2. Pull from branch *2-11-2020*
+
+[NOTE]
+====
+The document drafted branch is 2-11-2010, but there is no branch named as 2-11-2010.
+So I used branch is 2-11-2020.
+
+*Can help to Confirm*?
+====
+
+.source branch used for pull
+image:2.jpeg[]
+
+
+- 3. Commit and push to our Alphasirius Gitlab (*Branch Master*)
+
+
+=== Web
+
+==== Food-Ordering-Superadmin-Frontend (Superadmin Web)
+
+- 1. Programming Language : *React.js*
+
+- 2. Pull from branch *master*
+
+.source branch used for pull
+image:9.jpeg[]
+
+- 3. Commit and push to our Alphasirius Gitlab (*Branch Master*)
+
+
+==== Admin-Food-Ordering (Merchant Web)
+
+- 1. Programming Language : *React.js*
+
+- 2. Pull from branch *master*
+
+.source branch used for pull
+image:8.jpeg[]
+
+- 3. Commit and push to our Alphasirius Gitlab (*Branch Master*)
+
+.source branch used for pull
+==== Web-Food-Ordering (Customer Web)
+
+- 1. Programming Language : *React.js*
+
+- 2. Pull from branch *master*
+
+.source branch used for pull
+image:6.jpeg[]
+
+- 3. Commit and push to our Alphasirius Gitlab (*Branch Master*)
+
+
+== Frontend
+
+=== Android-Food-Ordering (Merchant Android APP)
+
+- 1. Programming Language : *Java Kotlin*
+
+- 2. Pull from branch *master*
+
+.source branch used for pull
+image:7.jpeg[]
+
+- 3. Commit and push to our Alphasirius Gitlab (*Branch Master*)
+
+
+== Alphasirius Gitlab Structure
+
+All Code have committed to Alphasirius Gitlab.
+
+Code committed structure :
+
+image:10.jpeg[]
+
+
+
+
